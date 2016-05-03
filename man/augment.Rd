@@ -75,9 +75,14 @@ then \code{augment} computes a new variable cast as a numeric and names it \emph
 whether argument \code{pattern} has 2 or 3 unique values and computes the correct structure of
 a given subject. The variable is cast as character;\cr
 \emph{status_num}: the corresponding integer version of \emph{status};\cr
-\emph{n_status}: a mix of \emph{status} and \emph{status_num} cast as character.
-\emph{status_num} comes into play when a model on the progression of the process is intended.\cr
+\emph{n_status}: a mix of \emph{status} and \code{n_events} cast as character.
+\emph{n_status} comes into play when a model on the progression of the process is intended.\cr
 -----\cr
+
+If \code{more_status} is passed, then \code{augment} computes some more variables. They mimic the
+meaning of \emph{status}, \emph{status_num}, and \emph{n_status} but they account for the more
+complex structure defined. They are: \code{status_exp}, \code{status_exp_num}, and
+\code{n_status_exp}.
 }
 \description{
 A fast and general method for reshaping standard longitudinal data, where each observation contains
