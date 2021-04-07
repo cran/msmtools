@@ -1,8 +1,8 @@
 # Building augmented data for multi-state models: the `msmtools` package
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/msmtools)](https://cran.r-project.org/package=msmtools)
-Linux/Unix: [![Build Status](https://travis-ci.org/contefranz/msmtools.svg?branch=master)](https://travis-ci.org/contefranz/msmtools)
-Windows: [![Build status](https://ci.appveyor.com/api/projects/status/9d38hi27w1f7ccko/branch/master?svg=true)](https://ci.appveyor.com/project/contefranz/msmtools/branch/master)
+[![lifecycle](https://lifecycle.r-lib.org/articles/figures/lifecycle-maturing.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![release](https://img.shields.io/badge/dev.%20version-2.0.0-blue)](https://github.com/contefranz/msmtools)
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/msmtools)](https://cran.r-project.org/package=msmtools)
 
 ***
 
@@ -15,10 +15,10 @@ using the **msm** package.
 
 ``` r
 # Install the released version from CRAN:
-install.packages( "msmtools" )
+install.packages("msmtools")
 
 # Install the development version from GitHub:
-devtools::install_github( "contefranz/msmtools" )
+devtools::install_github("contefranz/msmtools")
 ```
 
 ## Overview
@@ -47,6 +47,15 @@ For more information about **msmtools**, please check out the vignette with
 `vignette( "msmtools" )`.
 
 Bugs and issues can be reported at
-[www.github.com/contefranz/msmtools/issues](www.github.com/contefranz/msmtools/issues).
+[https://github.com/contefranz/msmtools/issues](https://github.com/contefranz/msmtools/issues).
+
+## Breaking changes from version 2.0.0
+
+**msmtools** has received a lot of improvements in the plotting functions. In particular, from
+version 2.0.0 both `survplot()` and `prevplot()` support [**ggplot2**](https://ggplot2.tidyverse.org). 
+This inevitably introduces
+several breaking changes. Overall, both functions have been greatly simplified, but I encourage
+to go over each function's documentation and the vignette to get a correct understanding on how they
+work.
 
 ***

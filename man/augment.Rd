@@ -4,9 +4,22 @@
 \alias{augment}
 \title{A fast and general method for building augmented data}
 \usage{
-augment(data, data_key, n_events, pattern, state = list("IN", "OUT", "DEAD"),
-  t_start, t_end, t_cens, t_death, t_augmented, more_status, check_NA = FALSE,
-  convert = FALSE, verbose = TRUE)
+augment(
+  data,
+  data_key,
+  n_events,
+  pattern,
+  state = list("IN", "OUT", "DEAD"),
+  t_start,
+  t_end,
+  t_cens,
+  t_death,
+  t_augmented,
+  more_status,
+  check_NA = FALSE,
+  convert = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{data}{A \code{data.table} or \code{data.frame} object in longitudinal
@@ -24,7 +37,7 @@ event number of a given ID. \code{augment} always checks whether
 and stops the execution in case the check fails (see 'Details').
 If missing, \code{augment} fastly creates a variable named \code{"n_events"}.}
 
-\item{pattern}{Either an integer, a factor or a characer with 2 or 3 unique
+\item{pattern}{Either an integer, a factor or a character with 2 or 3 unique
 values which provides the ID status at the end of the study. \code{pattern}
 has a predefined structure. When 2 values are detected, they must be in the
 format: 0 = "alive", 1 = "dead". When 3 values are detected, then the format
@@ -55,7 +68,7 @@ variable is added to \code{data}. \code{t_augmented} is cast to integer
 or to numeric depending whether \code{t_start} is a date or a difftime,
 respectively. The suffix '_int' or '_num' is pasted to \code{t_augmented}
 and a new variable is computed accordingly.
-This is done because \code{\link[msm]{msm}} can't correclty deal with date
+This is done because \code{\link[msm]{msm}} can't correctly deal with date
 or difftime variables. Both variables are positioned before \code{t_start}.}
 
 \item{more_status}{A variable which marks further transitions beside the
@@ -117,11 +130,11 @@ framework using the \code{\link[msm]{msm}} package.
 \details{
 In order to get the data processed, a monotonic increasing process
 needs to be ensured. In the first place, \code{augment} checks this both in
-case \code{n_events} is missing or not. The data are fastly ordered through
+case \code{n_events} is missing or not. The data are efficiently ordered through
 \code{\link[data.table]{setkey}} function with \code{data_key} as the primary
 key and \code{t_start} as the secondary key. In the second place, it checks
 the monotonicity of \code{n_events} and if it fails, it stops with error and
-returns the subjects gived by \code{data_key} for whom the condition is not
+returns the subjects given by \code{data_key} for whom the condition is not
 met. If \code{n_events} is missing, then \code{augment} internally computes
 the progression number with the name \emph{n_events} and runs the same
 procedure.
@@ -176,7 +189,7 @@ class( hosp_augmented )
 \references{
 Jackson, C.H. (2011). Multi-State Models for Panel Data:\cr
 The \emph{msm} Package for R. Journal of Statistical Software, 38(8), 1-29.\cr
-URL \url{http://www.jstatsoft.org/v38/i08/}.
+URL \url{https://www.jstatsoft.org/v38/i08/}.
 
 M. Dowle, A. Srinivasan, T. Short, S. Lianoglou with contributions from
 R. Saporta and E. Antonyan (2016):\cr
