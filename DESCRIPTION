@@ -2,8 +2,8 @@ Package: msmtools
 Type: Package
 Title: Building Augmented Data to Run Multi-State Models with 'msm'
         Package
-Version: 2.0.0
-Date: 2021-04-07
+Version: 2.0.1
+Date: 2021-04-10
 Authors@R: person("Francesco", "Grossetti",
     email = "francesco.grossetti@unibocconi.it",
     role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5130-7745"))
@@ -22,9 +22,9 @@ Suggests: testthat, knitr, rmarkdown, roxygen2, usethis
 VignetteBuilder: knitr
 Encoding: UTF-8
 NeedsCompilation: no
-Packaged: 2021-04-07 13:41:17 UTC; grossetti
+Packaged: 2021-04-10 16:39:33 UTC; grossetti
 Author: Francesco Grossetti [aut, cre]
     (<https://orcid.org/0000-0002-5130-7745>)
 Maintainer: Francesco Grossetti <francesco.grossetti@unibocconi.it>
 Repository: CRAN
-Date/Publication: 2021-04-07 14:00:02 UTC
+Date/Publication: 2021-04-12 23:20:05 UTC
