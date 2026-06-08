@@ -2,7 +2,7 @@
 % Please edit documentation in R/survplot.R
 \name{survplot}
 \alias{survplot}
-\title{Plot and get survival data from a multi-state model}
+\title{Plot fitted survival and Kaplan-Meier curves from a multi-state model}
 \usage{
 survplot(
   x,
@@ -14,56 +14,55 @@ survplot(
   times,
   grid = 100L,
   km = FALSE,
-  out = c("none", "fitted", "km", "all"),
   ci = c("none", "normal", "bootstrap"),
   interp = c("start", "midpoint"),
   B = 100L,
-  ci_km = c("none", "plain", "log", "log-log", "logit", "arcsin")
+  ci_km = c("none", "plain", "log", "log-log", "logit", "arcsin"),
+  print_plot = TRUE,
+  verbosity = getOption("msmtools.verbosity", "quiet"),
+  ...
 )
 }
 \arguments{
-\item{x}{A \code{msm} object.}
+\item{x}{A fitted \strong{msm} model object.}
 
 \item{from}{State from which to compute the estimated survival.
-Default to state 1.}
+Defaults to state 1.}
 
 \item{to}{The absorbing state to which compute the estimated survival.
-Default to the highest state found by \code{\link[msm]{absorbing.msm}}.}
+Defaults to the highest state found by \code{\link[msm:absorbing.msm]{msm::absorbing.msm()}}.}
 
-\item{range}{A numeric vector of two elements which gives the time range of
-the plot.}
+\item{range}{A numeric vector of two elements giving the time range of the
+plot.}
 
 \item{covariates}{Covariate values for which to evaluate the expected
-probabilities. These can either be: the string \code{"mean"}, denoting the
-means of the covariates in the data (default), the number 0,
-indicating that all the covariates should be set to zero, or a list of values,
-with optional names. For example:\cr
-\code{list (75, 1)}\cr
-where the order of the list follows the order of the covariates originally
-given in the model formula, or a named list:\cr
-\code{list (age = 75, gender = "M")}.}
+probabilities. These can be \code{"mean"}, denoting the means of the covariates in
+the data (default); the number 0, indicating that all covariates should be
+set to zero; or a list of values, with optional names. For example:
 
-\item{exacttimes}{If \code{TRUE} (default) then transition times are known
-and exact. This is inherited from \code{msm} and should be set the same way.}
+\code{list(75, 1)}
+
+The unnamed list must follow the order of the covariates in the original
+model formula. A named list is also accepted:
+
+\code{list(age = 75, gender = "M")}.}
+
+\item{exacttimes}{If \code{TRUE} (default), transition times are known and exact.
+This should match the value used when fitting the model with \strong{msm}.}
 
 \item{times}{An optional numeric vector giving the times at which to compute
 the fitted survival.}
 
-\item{grid}{An integer specifying the grid points at which to compute the fitted
-survival (see 'Details').
-If \code{times} is passed, \code{grid} is ignored. Default to 100 points.}
+\item{grid}{An integer specifying the grid points at which to compute the
+fitted survival curve (see Details). If \code{times} is passed, \code{grid} is ignored.
+Defaults to 100 points.}
 
-\item{km}{If \code{TRUE}, then the Kaplan-Meier curve is plotted. Default is
-\code{FALSE}.}
-
-\item{out}{A character vector specifying what the function has to return. Accepted values are
-\code{"none"} (default) to return just the plot, \code{"fitted"} to return the fitted survival
-curve only, \code{"km"} to return the Kaplan-Meier only, \code{"all"} to return all of the above.}
+\item{km}{If \code{TRUE}, the Kaplan-Meier curve is plotted. Default is \code{FALSE}.}
 
 \item{ci}{A character vector with the type of confidence intervals to compute for the fitted
 survival curve. Specify either \code{"none"} (default), for no confidence intervals,
 \code{"normal"} or \code{"bootstrap"}, for confidence intervals computed with the respective
-method in \code{\link[msm]{pmatrix.msm}}. This is very computationally-intensive,
+method in \code{\link[msm:pmatrix.msm]{msm::pmatrix.msm()}}. This is computationally intensive,
 since intervals must be computed at a series of times.}
 
 \item{interp}{If \code{"start"} (default), then the entry time into the
@@ -79,84 +78,105 @@ rough diagnostic purposes.}
 
 \item{ci_km}{A character vector with the type of confidence intervals to compute for the
 Kaplan-Meier curve. Specify either \code{"none"}, \code{"plain"}, \code{"log"}, \code{"log-log"},
-\code{"logit"}, or \code{"arcsin"}, as coded in \code{\link[survival]{survfit}}.}
+\code{"logit"}, or \code{"arcsin"}, as coded in \code{\link[survival:survfit]{survival::survfit()}}.}
+
+\item{print_plot}{If \code{TRUE} (default), the plot is printed before being
+returned. If \code{FALSE}, the plot is returned without printing.}
+
+\item{verbosity}{Controls informational output. Use \code{"quiet"} to suppress
+status messages and \code{"summary"} or \code{"progress"} for high-level messages.}
+
+\item{...}{Reserved for the migration trampoline. Passing the legacy
+\code{out} argument here raises an informative error pointing to the new
+\verb{$fitted} / \verb{$km} access pattern. The trampoline will be removed in
+v2.3.0.}
 }
 \value{
-When \code{out = "none"}, a \code{gg/ggplot} object is returned. If \code{out} is anything
-else, then a named list is returned. The Kaplan-Meier data can be accessed with \code{$km} while
-the estimated survival data with \code{$fitted}. If \code{out = "all"}, the plot, the Kaplan-Meier
-and the estimated curve are returned.
+A \code{gg/ggplot} object. The fitted and (when \code{km = TRUE})
+Kaplan-Meier data tables are attached to the returned plot as named
+fields:
+\itemize{
+\item \verb{$fitted} — a \code{data.table} with columns \code{time}, \code{surv}, and (when
+\code{ci} is not \code{"none"}) \code{lwr} / \code{upr}. Always present.
+\item \verb{$km} — a \code{data.table} with the Kaplan-Meier curve, exposed only when
+\code{km = TRUE}.
+}
+
+Access the data through the standard \code{$} operator:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{p <- survplot(model, km = TRUE)
+p           # prints the plot
+p$fitted    # fitted survival data
+p$km        # Kaplan-Meier data
+}\if{html}{\out{</div>}}
+
+\code{print_plot} only controls whether the plot is printed as a side effect.
+Returned objects are unchanged: use \code{print_plot = FALSE} to create the plot
+or returned data silently.
 }
 \description{
-Plot the fitted survival probability computed over a \code{\link[msm]{msm}} model and
-compare it with the Kaplan-Meier. Fast build and return the underlying data structures.
+Plot fitted survival probabilities from an \code{\link[msm:msm]{msm::msm()}} model and compare
+them with Kaplan-Meier estimates. The function can also return the data used
+to build each curve.
 }
 \details{
-The function is a wrapper of \code{\link[msm]{plot.survfit.msm}}
-and does more things. \code{survplot} manages correctly the plot of a fitted
-survival in an exact times framework (when \code{exacttimes = TRUE}) by just
-resetting the time scale and looking at the follow-up time. It can quickly
-build and return to the user the data structures used to compute the Kaplan-Meier
-and the fitted survival probability by specifying \code{out = "all"}.
+The function wraps \code{\link[msm:plot.survfit.msm]{msm::plot.survfit.msm()}} and adds support for
+exact-time plots by resetting the time scale to follow-up time. It returns
+a \code{gg/ggplot} object so the plot composes directly with \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}},
+\code{\link[ggplot2:theme]{ggplot2::theme()}}, and other ggplot operations.
 
-The user can defined custom times (through \code{times}) or let
-\code{survplot} choose them on its own (through \code{grid}).
-In the latter case, \code{survplot} looks for the follow-up time and divides
-it by \code{grid}. The higher it is, the finer the grid will be so that computing
-the fitted survival will take longer, but will be more precise.
+You can pass custom evaluation times through \code{times}, or let \code{survplot()}
+define them from \code{grid}. Larger \code{grid} values produce a finer grid and
+increase computation time.
 }
 \examples{
-\dontrun{
-data( hosp )
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+data(hosp)
 
 # augmenting the data
-hosp_augmented = augment( data = hosp, data_key = subj, n_events = adm_number,
+hosp_augmented = augment(data = hosp, data_key = subj, n_events = adm_number,
                           pattern = label_3, t_start = dateIN, t_end = dateOUT,
-                          t_cens = dateCENS )
+                          t_cens = dateCENS)
 
 # let's define the initial transition matrix for our model
-Qmat = matrix( data = 0, nrow = 3, ncol = 3, byrow = TRUE )
-Qmat[ 1, 1:3 ] = 1
-Qmat[ 2, 1:3 ] = 1
-colnames( Qmat ) = c( 'IN', 'OUT', 'DEAD' )
-rownames( Qmat ) = c( 'IN', 'OUT', 'DEAD' )
+Qmat = matrix(data = 0, nrow = 3, ncol = 3, byrow = TRUE)
+Qmat[1, 1:3] = 1
+Qmat[2, 1:3] = 1
+colnames(Qmat) = c('IN', 'OUT', 'DEAD')
+rownames(Qmat) = c('IN', 'OUT', 'DEAD')
 
-# attaching the msm package and running the model using
+# fitting the model using
 # gender and age as covariates
-library( msm )
-msm_model = msm( status_num ~ augmented_int, subject = subj,
+library(msm)
+msm_model = msm(status_num ~ augmented_int, subject = subj,
                  data = hosp_augmented, covariates = ~ gender + age,
                  exacttimes = TRUE, gen.inits = TRUE, qmatrix = Qmat,
-                 method = 'BFGS', control = list( fnscale = 6e+05, trace = 0,
-                 REPORT = 1, maxit = 10000 ) )
+                 method = 'BFGS', control = list(fnscale = 6e+05, trace = 0,
+                 REPORT = 1, maxit = 10000))
 
 # plotting the fitted and empirical survival from state = 1
-theplot = survplot( x = msm_model, km = TRUE )
+theplot = survplot(x = msm_model, km = TRUE)
 
-# plotting the fitted and empirical survival from state = 2 and
-and returning both the fitted and the empirical curve
-out_all = survplot( msm_model, from = 2, km = TRUE, out = "all" )
-
-}
-
+# the fitted and Kaplan-Meier data tables are attached to the plot
+head(theplot$fitted)
+head(theplot$km)
+\dontshow{\}) # examplesIf}
 }
 \references{
 Titman, A. and Sharples, L.D. (2010). Model diagnostics for
-multi-state models, \emph{Statistical Methods in Medical Research}, 19,
-621-651.\cr
+multi-state models, \emph{Statistical Methods in Medical Research}, 19, 621-651.
 
 Titman, A. and Sharples, L.D. (2008). A general goodness-of-fit test for
-Markov and hidden Markov models, \emph{Statistics in Medicine}, 27,
-2177-2195. \cr
+Markov and hidden Markov models, \emph{Statistics in Medicine}, 27, 2177-2195.
 
-Jackson, C.H. (2011). Multi-State Models for Panel Data:\cr
-The \emph{msm} Package for R. Journal of Statistical Software, 38(8), 1-29.\cr
-URL \url{https://www.jstatsoft.org/v38/i08/}.
+Jackson, C.H. (2011). Multi-State Models for Panel Data: The \strong{msm} Package
+for R. Journal of Statistical Software, 38(8), 1-29.
+\url{https://www.jstatsoft.org/v38/i08/}.
 }
 \seealso{
-\code{\link[msm]{plot.survfit.msm}} \code{\link[msm]{msm}},
-\code{\link[msm]{pmatrix.msm}}, \code{\link[data.table]{setDF}}
+\code{\link[msm:plot.survfit.msm]{msm::plot.survfit.msm()}}, \code{\link[msm:msm]{msm::msm()}},
+\code{\link[msm:pmatrix.msm]{msm::pmatrix.msm()}}, \code{\link[data.table:setDF]{data.table::setDF()}}
 }
 \author{
-Francesco Grossetti \email{francesco.grossetti@unibocconi.it}.
+Francesco Grossetti \href{mailto:francesco.grossetti@unibocconi.it}{francesco.grossetti@unibocconi.it}.
 }

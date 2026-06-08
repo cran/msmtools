@@ -4,101 +4,133 @@
 \alias{prevplot}
 \title{Plot observed and expected prevalences for a multi-state model}
 \usage{
-prevplot(x, prev.obj, exacttimes = TRUE, M = FALSE, ci = FALSE)
+prevplot(
+  x,
+  prev.obj,
+  exacttimes = TRUE,
+  M = FALSE,
+  ci = FALSE,
+  print_plot = TRUE,
+  verbosity = getOption("msmtools.verbosity", "quiet")
+)
 }
 \arguments{
-\item{x}{A \code{msm} object.}
+\item{x}{A fitted \strong{msm} model object.}
 
-\item{prev.obj}{A list computed by \code{\link[msm]{prevalence.msm}}.
-It can be with or without confidence intervals. \code{prevplot} will behaves
-accordingly.}
+\item{prev.obj}{A list computed by \code{\link[msm:prevalence.msm]{msm::prevalence.msm()}}.
+It may include confidence intervals; \code{prevplot()} adapts automatically.}
 
-\item{exacttimes}{If \code{TRUE} (default) then transition times are known
-and exact. This is inherited from \code{msm} and should be set the same way.}
+\item{exacttimes}{If \code{TRUE} (default), transition times are known and exact.
+This should match the value used when fitting the model with \strong{msm}.}
 
-\item{M}{If \code{TRUE}, then a rough indicator of deviance from the model is
-computed (see 'Details'). Default is \code{FALSE}.}
+\item{M}{If \code{TRUE}, a rough indicator of deviance from the model is
+computed (see Details). Default is \code{FALSE}.}
 
-\item{ci}{If \code{TRUE}, then confidence intervals, if they exist, are plotted.
+\item{ci}{If \code{TRUE}, confidence intervals are plotted when available.
 Default is \code{FALSE}.}
+
+\item{print_plot}{If \code{TRUE} (default), the plot is printed before being
+returned. If \code{FALSE}, the plot is returned without printing.}
+
+\item{verbosity}{Controls informational output. Use \code{"quiet"} to suppress
+status messages and \code{"summary"} or \code{"progress"} for high-level messages.}
+}
+\value{
+When \code{M = FALSE}, a \code{gg/ggplot} object with observed and expected
+prevalences is returned. When \code{M = TRUE}, a \code{patchwork} object is returned
+with the prevalence plot and the deviance \code{M} plot.
+
+The returned object also carries a \verb{$prevalence} field with the
+long-format \code{data.table} used to build the plot. It always includes
+\code{time}, \code{state}, \code{obs}, and \code{hat}; it also includes \code{lwr} and \code{upr}
+when \code{ci = TRUE}, and \code{M} when \code{M = TRUE}. Access it directly:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{p <- prevplot(model, prev_obj)
+p$prevalence
+}\if{html}{\out{</div>}}
+
+\code{print_plot} only controls whether the plot is printed as a side effect.
+Returned objects are unchanged: use \code{print_plot = FALSE} to create the plot
+silently.
 }
 \description{
-Provides a graphical indication of goodness of fit of a multi-state model
-computed by \code{\link[msm]{msm}} using observed and expected prevalences.
-It also computes a rough indicator of where the data depart from the estimated
-Markov model.
+Plot observed and expected state prevalences from a fitted multi-state model.
+The function can also compute a rough diagnostic for where the data depart
+from the estimated Markov model.
 }
 \details{
 When \code{M = TRUE}, a rough indicator of the deviance from the
 Markov model is computed according to Titman and Sharples (2008).
-A comparison at a given time \eqn{t_i} of a patient \emph{k} in the state
-\emph{s} between observed counts \eqn{O_{is}} with expected ones \eqn{E_{is}}
-is build as follows:
-\deqn{M_{is} = \frac{(O_{is} - E_{is})^2}{E_{is}}}{ (O_{is} - E_{is})^2 / E_{is}}
+A comparison at a given time \code{t_i} of a subject \code{k} in the state \code{s} between
+observed counts \code{O_is} and expected counts \code{E_is} is built as
+\code{M_is = (O_is - E_is)^2 / E_is}.
 
-The plot of the deviance M is returned together with the standard prevalence plot in the second
-row. This is not editable by the user.
+The deviance \code{M} plot is returned together with the standard prevalence plot
+in the second row. This layout is fixed.
+
+When \code{M = TRUE}, the combined layout is built with \strong{patchwork}, which is
+an optional dependency of \strong{msmtools}. Install it with
+\code{install.packages("patchwork")} if it is not already available; \code{prevplot()}
+raises an informative error otherwise. The default \code{M = FALSE} path has no
+such requirement.
 }
 \examples{
-\dontrun{
-data( hosp )
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+data(hosp)
 
 # augmenting the data
-hosp_augmented = augment( data = hosp, data_key = subj, n_events = adm_number,
+hosp_augmented = augment(data = hosp, data_key = subj, n_events = adm_number,
                           pattern = label_3, t_start = dateIN, t_end = dateOUT,
-                          t_cens = dateCENS )
+                          t_cens = dateCENS)
 
 # let's define the initial transition matrix for our model
-Qmat = matrix( data = 0, nrow = 3, ncol = 3, byrow = TRUE )
-Qmat[ 1, 1:3 ] = 1
-Qmat[ 2, 1:3 ] = 1
-colnames( Qmat ) = c( 'IN', 'OUT', 'DEAD' )
-rownames( Qmat ) = c( 'IN', 'OUT', 'DEAD' )
+Qmat = matrix(data = 0, nrow = 3, ncol = 3, byrow = TRUE)
+Qmat[1, 1:3] = 1
+Qmat[2, 1:3] = 1
+colnames(Qmat) = c('IN', 'OUT', 'DEAD')
+rownames(Qmat) = c('IN', 'OUT', 'DEAD')
 
-# attaching the msm package and running the model using
+# fitting the model using
 # gender and age as covariates
-library( msm )
-msm_model = msm( status_num ~ augmented_int, subject = subj,
+library(msm)
+msm_model = msm(status_num ~ augmented_int, subject = subj,
                  data = hosp_augmented, covariates = ~ gender + age,
                  exacttimes = TRUE, gen.inits = TRUE, qmatrix = Qmat,
-                 method = 'BFGS', control = list( fnscale = 6e+05, trace = 0,
-                 REPORT = 1, maxit = 10000 ) )
+                 method = 'BFGS', control = list(fnscale = 6e+05, trace = 0,
+                 REPORT = 1, maxit = 10000))
 
 # defining the times at which compute the prevalences
-t_min = min( hosp_augmented$augmented_int )
-t_max = max( hosp_augmented$augmented_int )
+t_min = min(hosp_augmented$augmented_int)
+t_max = max(hosp_augmented$augmented_int)
 steps = 100L
 
 # computing prevalences
-prev = prevalence.msm( msm_model, covariates = 'mean', ci = 'normal',
-                       times = seq( t_min, t_max, steps ) )
+prev = prevalence.msm(msm_model, covariates = 'mean', ci = 'normal',
+                       times = seq(t_min, t_max, steps))
 
 # and plotting them using prevplot()
-gof = prevplot( x = msm_model, prev.obj = prev, ci = TRUE, M = TRUE )
-}
-
+gof = prevplot(x = msm_model, prev.obj = prev, ci = TRUE, M = TRUE)
+\dontshow{\}) # examplesIf}
 }
 \references{
 Titman, A. and Sharples, L.D. (2010). Model diagnostics for
-multi-state models, \emph{Statistical Methods in Medical Research}, 19,
-621-651.\cr
+multi-state models, \emph{Statistical Methods in Medical Research}, 19, 621-651.
 
 Titman, A. and Sharples, L.D. (2008). A general goodness-of-fit test for
-Markov and hidden Markov models, \emph{Statistics in Medicine}, 27,
-2177-2195. \cr
+Markov and hidden Markov models, \emph{Statistics in Medicine}, 27, 2177-2195.
 
 Gentleman RC, Lawless JF, Lindsey JC, Yan P. (1994). Multi-state Markov
 models for analysing incomplete disease data with illustrations for HIV
-disease. \emph{Statistics in Medicine}, 13:805-821. \cr
+disease. \emph{Statistics in Medicine}, 13:805-821.
 
-Jackson, C.H. (2011). Multi-State Models for Panel Data:\cr
-The \emph{msm} Package for R. Journal of Statistical Software, 38(8), 1-29.\cr
-URL \url{https://www.jstatsoft.org/v38/i08/}.
+Jackson, C.H. (2011). Multi-State Models for Panel Data: The \strong{msm} Package
+for R. Journal of Statistical Software, 38(8), 1-29.
+\url{https://www.jstatsoft.org/v38/i08/}.
 }
 \seealso{
-\code{\link[msm]{plot.prevalence.msm}} \code{\link[msm]{msm}}
-\code{\link[msm]{prevalence.msm}}
+\code{\link[msm:plot.prevalence.msm]{msm::plot.prevalence.msm()}}, \code{\link[msm:msm]{msm::msm()}},
+\code{\link[msm:prevalence.msm]{msm::prevalence.msm()}}
 }
 \author{
-Francesco Grossetti \email{francesco.grossetti@unibocconi.it}.
+Francesco Grossetti \href{mailto:francesco.grossetti@unibocconi.it}{francesco.grossetti@unibocconi.it}.
 }
